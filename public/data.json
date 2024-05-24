@@ -1,0 +1,100 @@
+[
+    {
+        "title": "Introduction",
+        "content": [
+            {
+                "type": "desc",
+                "text": "Welcome to Ahrilang. This is a tutorial for using Ahrilang. Just press 'Try' to see the result."
+            },
+            {
+                "type": "code",
+                "text": "print(0)\nprint(1)",
+                "try": true
+            }
+        ]
+    },
+    {
+        "title": "Variables",
+        "content": [
+            {
+                "type": "desc",
+                "text": "Variables can be used to store values."
+            },
+            {
+                "type": "code",
+                "text": "a = 1\nprint(a)\nb = \"hello\"\nprint(b)\nc = true\nprint(c)",
+                "try": true
+            }
+        ]
+    },
+    {
+        "title": "Functions",
+        "content": [
+            {
+                "type": "desc",
+                "text": "Functions are used to perform specific tasks."
+            },
+            {
+                "type": "code",
+                "text": "fn add(a, b){\n    return a + b\n}\n\nres = add(1, 2)\nprint(res)",
+                "try": true
+            }
+        ]
+    },
+    {
+        "title": "Async Functions",
+        "content": [
+            {
+                "type": "desc",
+                "text": "Async functions are used to perform tasks asynchronously."
+            },
+            {
+                "type": "code",
+                "text": "async fn asyncAdd(a, b){\n    return a + b\n}\n\ntask = asyncAdd(1, 2)\nres = coroutine(task)\nprint(res)",
+                "try": true
+            }
+        ]
+    },
+    {
+        "title": "If Statements",
+        "content": [
+            {
+                "type": "desc",
+                "text": "If statements are used to perform different tasks based on certain conditions."
+            },
+            {
+                "type": "code",
+                "text": "a = 0\nif a > 0 {\n    print(\"greater than 0\")\n} else if a < 0 {\n    print(\"less than 0\")\n} else {\n    print(\"equal to 0\")\n}",
+                "try": false
+            }
+        ]
+    },
+    {
+        "title": "Loops",
+        "content": [
+            {
+                "type": "desc",
+                "text": "Loops are used to repeat tasks."
+            },
+            {
+                "type": "code",
+                "text": "a = 0\nloop {\n    print(a)\n    a = a + 1\n    if a > 10 {\n        break\n    }\n}",
+                "try": false
+            }
+        ]
+    },
+    {
+        "title": "While",
+        "content": [
+            {
+                "type": "desc",
+                "text": "While loops are used to repeat tasks while a condition is true."
+            },
+            {
+                "type": "code",
+                "text": "a = 0\nwhile a < 10 {\n    print(a)\n    a = a + 1\n}",
+                "try": false
+            }
+        ]
+    }
+]

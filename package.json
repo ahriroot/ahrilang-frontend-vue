@@ -1,0 +1,29 @@
+{
+  "name": "ahrilang-frontend-vue",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "ahrilang-js": "C:/Users/Home/Desktop/projects/ahrilang-js",
+    "echarts": "^5.5.0",
+    "monaco-editor": "^0.48.0",
+    "nprogress": "^0.2.0",
+    "prismjs": "^1.29.0",
+    "vue": "^3.4.21",
+    "vue-router": "^4.3.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.11",
+    "@types/nprogress": "^0.2.3",
+    "@types/prismjs": "^1.26.4",
+    "@vitejs/plugin-vue": "^5.0.4",
+    "typescript": "^5.2.2",
+    "vite": "^5.2.0",
+    "vue-tsc": "^2.0.6"
+  }
+}
