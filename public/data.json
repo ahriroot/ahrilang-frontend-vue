@@ -65,7 +65,7 @@
             {
                 "type": "code",
                 "text": "a = 0\nif a > 0 {\n    print(\"greater than 0\")\n} else if a < 0 {\n    print(\"less than 0\")\n} else {\n    print(\"equal to 0\")\n}",
-                "try": false
+                "try": true
             }
         ]
     },

@@ -353,6 +353,9 @@
   resolved "https://registry.npmmirror.com/@vue/shared/-/shared-3.4.27.tgz"
   integrity sha512-DL3NmY2OFlqmYYrzp39yi3LDkKxa5vZVwxWdQ3rG0ekuWscHraeIbnI8t+aZK7qhYqEqWKTUdijadunb9pnrgA==
 
+"ahrilang-js@C:/Users/Home/Desktop/projects/ahrilang-js":
+  version "0.1.0"
+
 "ahrilang-js@file:../projects/ahrilang-js":
   version "0.1.0"
 
