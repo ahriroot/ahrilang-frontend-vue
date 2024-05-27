@@ -14,6 +14,8 @@ const props = withDefaults(defineProps<{ code: string, fontSize?: number }>(), {
     fontSize: 20
 })
 
+const emits = defineEmits(['changed'])
+
 const ide = shallowRef()
 const editor = shallowRef()
 
@@ -33,86 +35,83 @@ onMounted(async () => {
     window.addEventListener('resize', resize)
 
     if (ide.value) {
-        monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
-            noSemanticValidation: true,
-            noSyntaxValidation: false,
-        })
-        monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
-            target: monaco.languages.typescript.ScriptTarget.ES2020,
-            allowNonTsExtensions: true,
-        })
         monaco.languages.register({
             id: 'ahrilang',
         })
-        monaco.languages.registerCompletionItemProvider('ahrilang', {
-            provideCompletionItems: function (_model, position) {
-                return {
-                    suggestions: [
-                        {
-                            label: 'use',
-                            kind: monaco.languages.CompletionItemKind.Keyword,
-                            insertText: 'use ',
-                            range: {
-                                startLineNumber: position.lineNumber,
-                                startColumn: position.column - 3,
-                                endLineNumber: position.lineNumber,
-                                endColumn: position.column
-                            }
-                        },
-                        {
-                            label: 'mod',
-                            kind: monaco.languages.CompletionItemKind.Keyword,
-                            insertText: 'mod ',
-                            range: {
-                                startLineNumber: position.lineNumber,
-                                startColumn: position.column - 3,
-                                endLineNumber: position.lineNumber,
-                                endColumn: position.column
-                            }
-                        },
-                    ]
-                }
-            }
-        })
-        monaco.languages.registerOnTypeFormattingEditProvider('ahrilang', {
-            autoFormatTriggerCharacters: ['(', ')'],
-            provideOnTypeFormattingEdits: function (model, position, ch, _options, _token) {
-                if (ch === '(') {
-                    var text = ')'
-                    var range = new monaco.Range(position.lineNumber, position.column, position.lineNumber, position.column)
-                    return [{
-                        range: range,
-                        text: text
-                    }]
-                }
-
-                if (ch === ')') {
-                    var prevCharPosition = new monaco.Position(position.lineNumber, Math.max(1, position.column - 1))
-                    var prevChar = model.getValueInRange(new monaco.Range(prevCharPosition.lineNumber, prevCharPosition.column, position.lineNumber, position.column))
-                    if (prevChar === '(') {
-                        return []
-                    }
-                }
-                return []
-            }
-        })
         monaco.languages.setMonarchTokensProvider('ahrilang', {
+            keywords: [
+                'mod',
+                'pub',
+                'use',
+                'as',
+                'class',
+                'async',
+                'await',
+                'fn',
+                'return',
+                'if',
+                'else',
+                'for',
+                'while',
+                'loop',
+                'continue',
+                'break',
+                'true',
+                'false',
+                'print',
+            ],
+            operators: [
+                '=', '>', '<', '!', '~', '?', ':', '==', '<=', '>=', '!=',
+                '&&', '||', '+', '-', '*', '/', '&', '|', '^', '%',
+                '<<', '>>', '>>>', '+=', '-=', '*=', '/=', '&=', '|=', '^=',
+                '%=', '<<=', '>>=',
+            ],
+            symbols: /[=><!~?:&|+\-*\/\^%]+/,
+            escapes: /\\(?:[abfnrtv\\"']|x[0-9A-Fa-f]{1,4}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})/,
             tokenizer: {
                 root: [
-                    [/\b(?:use|mod|class|fn|if|else|loop|while|continue|break|return|true|false|int|float|string|print)\b/, { token: 'keyword' }],
-                    [/\d+/, { token: 'number' }], // 匹配数字
-                    [/[a-z]+/, { token: 'string' }], // 匹配字符串
-                    [/\bif\b|\belse\b/, { token: 'keyword.control' }], // 匹配关键字 if 和 else
-                    [/[+\-*/]/, { token: 'operator' }], // 匹配运算符
-                    [/\/\/.*/, { token: 'comment' }], // 匹配单行注释
-                    [/\b[a-z]+\b/, "identifier"],
-                    [/\/\*/, "comment", "@comment"],
+                    [/[a-z](\w|\-[a-zA-Z])*/, {
+                        cases: {
+                            '@keywords': 'keyword',
+                            '@default': 'identifier'
+                        }
+                    }],
+                    { include: '@whitespace' },
+                    [/[{}()\[\]]/, '@brackets'],
+                    [/@symbols/, {
+                        cases: {
+                            '@operators': 'operator',
+                            '@default': ''
+                        }
+                    }],
+                    [/@\s*[a-zA-Z_\$][\w\$]*/, { token: 'annotation', log: 'annotation token: $0' }],
+                    [/\d*\.\d+([eE][\-+]?\d+)?/, 'number.float'],
+                    [/0[xX][0-9a-fA-F]+/, 'number.hex'],
+                    [/\d+/, 'number'],
+                    [/[;,.]/, 'delimiter'],
+                    [/"([^"\\]|\\.)*$/, 'string.invalid'],
+                    [/"/, { token: 'string.quote', bracket: '@open', next: '@string' }],
+                    [/'[^\\']'/, 'string'],
+                    [/(')(@escapes)(')/, ['string', 'string.escape', 'string']],
+                    [/'/, 'string.invalid']
                 ],
-                // 多行注释规则
                 comment: [
-                    [/\*\//, "comment", "@pop"],  // 多行注释结束
-                    [/./, "comment"]
-                ]
+                    [/[^\/*]+/, 'comment'],
+                    [/\/\*/, 'comment', '@push'],
+                    ["\\*/", 'comment', '@pop'],
+                    [/[\/*]/, 'comment']
+                ],
+                string: [
+                    [/[^\\"]+/, 'string'],
+                    [/@escapes/, 'string.escape'],
+                    [/\\./, 'string.escape.invalid'],
+                    [/"/, { token: 'string.quote', bracket: '@close', next: '@pop' }]
+                ],
+                whitespace: [
+                    [/[ \t\r\n]+/, 'white'],
+                    [/\/\*/, 'comment', '@comment'],
+                    [/\/\/.*$/, 'comment'],
+                ],
             }
         })
 
@@ -124,9 +123,12 @@ onMounted(async () => {
             mouseWheelZoom: true,
             fontSize: props.fontSize,
         })
+
+        editor.value.onDidChangeModelContent(() => {
+            emits('changed', getCode())
+        })
     }
 })
-
 
 const getCode = () => {
     if (editor.value) {
@@ -134,6 +136,7 @@ const getCode = () => {
     }
     throw new Error('editor is null')
 }
+
 const setCode = (code: string) => {
     if (editor.value) {
         editor.value.setValue(code)

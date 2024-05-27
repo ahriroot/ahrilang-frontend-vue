@@ -34,7 +34,7 @@ onMounted(() => {
                     right: '20%',
                     symbolSize: 0,
                     symbol: 'rect',
-                    initialTreeDepth: 2,
+                    initialTreeDepth: 1,
                     label: {
                         backgroundColor: '#282c34',
                         color: '#fff',

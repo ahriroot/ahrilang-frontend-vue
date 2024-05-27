@@ -176,12 +176,12 @@ const handleClear = () => {
 }
 
 .content .item {
-    max-width: 800px;
+    max-width: 1200px;
 }
 
 .content .item .code {
     position: relative;
-    max-width: 600px;
+    max-width: 1000px;
 }
 
 .content .item .code .try {

@@ -1,170 +1,66 @@
 <script setup lang='ts'>
-import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
-import * as monaco from 'monaco-editor'
-import { onBeforeUnmount, onMounted, ref, shallowRef } from 'vue'
+import CodeEditor from '@/components/CodeEditor.vue'
+import { onBeforeMount, onBeforeUnmount, onMounted, ref, shallowRef } from 'vue'
 import { VirtualMachine, Lexer, Parser, Compiler } from 'ahrilang-js'
 
 import JsonView from '@/components/JsonView.vue'
 
-(self as any).MonacoEnvironment = {
-    getWorker(_: string, _label: string) {
-        return new EditorWorker()
-    },
-}
-const ide = shallowRef()
-const editor = shallowRef()
+const ide = shallowRef<any>()
 const output = ref<any[]>([])
-
-let timer = ref<NodeJS.Timeout | null>(null)
-const resize = () => {
-    if (timer.value !== null) {
-        clearTimeout(timer.value)
-    }
-    if (editor.value) {
-        timer.value = setTimeout(() => {
-            editor.value.layout()
-        }, 200)
-    }
-}
+const code = ref<string>("")
 
 const save = (event: KeyboardEvent) => {
     if (event.ctrlKey && event.key === 's') {
         event.preventDefault()
-        setStorage()
+        setStorage('')
     }
 }
 
+onBeforeMount(() => {
+    code.value = localStorage.getItem('code') || ''
+})
+
 onMounted(async () => {
-    window.addEventListener('resize', resize)
-
-    if (ide.value) {
-        ide.value.addEventListener('keydown', save)
-        monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
-            noSemanticValidation: true,
-            noSyntaxValidation: false,
-        })
-        monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
-            target: monaco.languages.typescript.ScriptTarget.ES2020,
-            allowNonTsExtensions: true,
-        })
-        monaco.languages.register({
-            id: 'ahrilang',
-        })
-        monaco.languages.registerCompletionItemProvider('ahrilang', {
-            provideCompletionItems: function (_model, position) {
-                return {
-                    suggestions: [
-                        {
-                            label: 'use',
-                            kind: monaco.languages.CompletionItemKind.Keyword,
-                            insertText: 'use ',
-                            range: {
-                                startLineNumber: position.lineNumber,
-                                startColumn: position.column - 3,
-                                endLineNumber: position.lineNumber,
-                                endColumn: position.column
-                            }
-                        },
-                        {
-                            label: 'mod',
-                            kind: monaco.languages.CompletionItemKind.Keyword,
-                            insertText: 'mod ',
-                            range: {
-                                startLineNumber: position.lineNumber,
-                                startColumn: position.column - 3,
-                                endLineNumber: position.lineNumber,
-                                endColumn: position.column
-                            }
-                        },
-                    ]
-                }
-            }
-        })
-        monaco.languages.registerOnTypeFormattingEditProvider('ahrilang', {
-            autoFormatTriggerCharacters: ['(', ')'],
-            provideOnTypeFormattingEdits: function (model, position, ch, _options, _token) {
-                // 当用户输入 ( 或 ) 时触发
-
-                // 如果输入的是 (，则自动添加 )
-                if (ch === '(') {
-                    var text = ')'
-                    var range = new monaco.Range(position.lineNumber, position.column, position.lineNumber, position.column)
-                    return [{
-                        range: range,
-                        text: text
-                    }]
-                }
-
-                // 如果输入的是 )，则检查光标前面的字符是否是 (
-                if (ch === ')') {
-                    var prevCharPosition = new monaco.Position(position.lineNumber, Math.max(1, position.column - 1))
-                    var prevChar = model.getValueInRange(new monaco.Range(prevCharPosition.lineNumber, prevCharPosition.column, position.lineNumber, position.column))
-                    if (prevChar === '(') {
-                        // 如果前一个字符是 (，则不做任何处理
-                        return []
-                    }
-                }
-
-                // 其他情况下，不做任何处理
-                return []
-            }
-        })
-        monaco.languages.setMonarchTokensProvider('ahrilang', {
-            tokenizer: {
-                root: [
-                    [/\b(?:use|mod|class|fn|if|else|loop|while|continue|break|return|true|false|int|float|string|print)\b/, { token: 'keyword' }],
-                    [/\d+/, { token: 'number' }], // 匹配数字
-                    [/[a-z]+/, { token: 'string' }], // 匹配字符串
-                    [/\bif\b|\belse\b/, { token: 'keyword.control' }], // 匹配关键字 if 和 else
-                    [/[+\-*/]/, { token: 'operator' }], // 匹配运算符
-                    [/\/\/.*/, { token: 'comment' }], // 匹配单行注释
-                    [/\b[a-z]+\b/, "identifier"],
-                    [/\/\*/, "comment", "@comment"],
-                ],
-                // 多行注释规则
-                comment: [
-                    [/\*\//, "comment", "@pop"],  // 多行注释结束
-                    [/./, "comment"]
-                ]
-            }
-        })
-        const code = localStorage.getItem('code') || ''
-
-        editor.value = monaco.editor.create(ide.value, {
-            value: code,
-            language: 'ahrilang',
-            readOnly: false,
-            theme: 'vs-dark',
-            mouseWheelZoom: true,
-            fontSize: 24,
-        })
-
-        editor.value.onDidChangeModelContent(async () => {
-            setStorage()
-        })
-    }
+    window.addEventListener('keydown', save)
 })
 
 const timerId = ref<NodeJS.Timeout | null>(null)
-const setStorage = () => {
+const setStorage = (code: string) => {
     if (timerId.value) {
         clearTimeout(timerId.value)
     }
-    if (editor.value) {
+    if (ide.value) {
         timerId.value = setTimeout(() => {
-            localStorage.setItem('code', editor.value.getValue())
+            localStorage.setItem('code', code || ide.value.getCode())
         }, 1000)
     }
 }
 
-const handleRun = () => {
-    const value = editor.value.getValue()
+onBeforeUnmount(() => {
+    if (timerId.value) {
+        clearTimeout(timerId.value)
+    }
+    window.removeEventListener('keydown', save)
+})
+
+const handleRun = async () => {
+    const value = ide.value.getCode()
     const builtins = {
         print: (arg: string) => {
-            output.value.push(arg)
+            output.value.push({
+                type: 'text',
+                value: arg
+            })
         }
     }
-    VirtualMachine.interpret(value, [], builtins)
+    try {
+        await VirtualMachine.eval(value, [], builtins)
+    } catch (error: any) {
+        output.value.push({
+            type: 'error',
+            value: error.message
+        })
+    }
 }
 
 const handleClear = () => {
@@ -178,75 +74,65 @@ const handleClose = () => {
 }
 
 const handleToken = () => {
-    const value = editor.value.getValue()
+    const value = ide.value.getCode()
     const lexer = new Lexer(value)
     const tokens = lexer.get_tokens()
     maskData.value = tokens
     mask.value = true
 }
 
-const tree = (data: any[]): any => {
-    let res: any[] = []
-    for (const item of data) {
-        if (typeof item === 'object') {
-            if ('type' in item) {
-                let type = item.type
-                switch (type) {
-                    case 'Program':
-                        res.push({
-                            name: 'Program',
-                            children: tree(item.expressions)
-                        })
-                        break
-                    case 'Statement':
-                        // res.push({
-                        //     name: 'Statement',
-                        //     children: tree([item.expression])
-                        // })
-                        // // 合并 []
-                        res = res.concat(tree([item.expression]))
-                        break
-                    default:
-                        res.push({
-                            name: type,
-                            children: Object.keys(item).filter((key) => key !== 'type').map((key) => {
-                                return {
-                                    name: key,
-                                    children: tree([item[key]])
-                                }
-                            })
-                        })
-                        break
+const colors: { [x: string]: any } = {
+    'Program': { color: 'blue' },
+}
+
+const tree = (data: any, key: string | null = null): any => {
+    if (Object.prototype.toString.call(data) === '[object Object]') {
+        let k = data.type || key
+        let tmp = {
+            name: k,
+            label: colors[k] || {},
+            children: Object.keys(data).filter((i) => i !== 'type').map((inner) => {
+                let item = data[inner]
+                if (Array.isArray(item)) {
+                    return {
+                        name: inner,
+                        children: item.map((i) => tree(i, inner))
+                    }
+                } else {
+                    return tree(item, inner)
                 }
-            } else {
-                Object.keys(item).map((key) => {
-                    res.push({
-                        name: key,
-                        children: tree([item[key]])
-                    })
-                })
-            }
-        } else {
-            res.push({ name: item })
+            }),
+        }
+        return tmp
+    } else {
+        if (key == 'precedence') {
+            return { name: `Precedence: ${data}`, label: { color: 'green' }, children: [] }
+        } else if (key == 'token_type') {
+            return { name: `TokenType: ${data}`, label: { color: 'green' }, children: [] }
+        }
+        return {
+            name: `${data}`,
+            label: {
+                color: 'green',
+            },
+            children: []
         }
     }
-    return res
 }
 
 const handleAst = () => {
-    const value = editor.value.getValue()
+    const value = ide.value.getCode()
     const lexer = new Lexer(value)
     const parser = new Parser(lexer)
     const ast = parser.parse() as any
 
-    console.log(ast)
+    maskData.value = [tree(ast)]
 
-    maskData.value = tree([ast])
     mask.value = true
 }
 
 const handleInst = () => {
-    const value = editor.value.getValue()
+    const value = ide.value.getCode()
     const lexer = new Lexer(value)
     const parser = new Parser(lexer)
     const ast = parser.parse()
@@ -256,28 +142,21 @@ const handleInst = () => {
     mask.value = true
 }
 
-onBeforeUnmount(() => {
-    if (timerId.value) {
-        clearTimeout(timerId.value)
-    }
-    if (editor.value) {
-        editor.value.dispose()
-    }
-    window.removeEventListener('resize', resize)
-    if (ide.value) {
-        ide.value.removeEventListener('keydown', save)
-    }
-})
+const handleChanged = (code: string) => {
+    setStorage(code)
+}
 </script>
 
 <template>
-    <div id="code">
+    <div class="code">
         <div class="mask" v-if="mask">
             <button class="btn" @click="handleClose">Close</button>
             <JsonView :data="maskData" />
         </div>
-        <div ref="ide" class="ide" id="ide"></div>
-        <div class="output" id="output">
+        <div class="ide">
+            <CodeEditor class="editor" ref="ide" :code="code" @changed="handleChanged" />
+        </div>
+        <div class="output">
             <div class="opera">
                 <button class="btn" @click="handleRun">Run</button>
                 <button class="btn" @click="handleClear">Clear</button>
@@ -286,14 +165,16 @@ onBeforeUnmount(() => {
                 <button class="btn" @click="handleInst">Inst</button>
             </div>
             <div class="console">
-                <div v-for="(item, index) in output" :key="index">{{ item }}</div>
+                <div v-for="(item, index) in output" :key="index" :class="item.type == 'text' ? 'text' : 'error'">{{
+            item.value }}
+                </div>
             </div>
         </div>
     </div>
 </template>
 
 <style scoped>
-#code {
+.code {
     position: absolute;
     top: 0;
     left: 0;
@@ -301,7 +182,7 @@ onBeforeUnmount(() => {
     bottom: 0;
 }
 
-#code .mask {
+.code .mask {
     position: fixed;
     top: 0;
     left: 0;
@@ -312,7 +193,20 @@ onBeforeUnmount(() => {
     overflow-y: auto;
 }
 
-#ide {
+.code .mask .btn {
+    z-index: 1000;
+    position: absolute;
+    top: 6px;
+    right: 10px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: #1afa29;
+    font-size: 16px;
+    transition: .3s;
+}
+
+.ide {
     position: absolute;
     top: 0;
     left: 0;
@@ -320,7 +214,7 @@ onBeforeUnmount(() => {
     bottom: 0;
 }
 
-#output {
+.output {
     position: absolute;
     top: 0;
     width: 600px;
@@ -352,5 +246,13 @@ onBeforeUnmount(() => {
     right: 0;
     bottom: 0;
     padding: 10px;
+}
+
+.console .text {
+    color: #fff;
+}
+
+.console .error {
+    color: #f00;
 }
 </style>
