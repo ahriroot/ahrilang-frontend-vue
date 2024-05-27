@@ -78,8 +78,8 @@
             },
             {
                 "type": "code",
-                "text": "a = 0\nloop {\n    print(a)\n    a = a + 1\n    if a > 10 {\n        break\n    }\n}",
-                "try": false
+                "text": "a = 0\nloop {\n    print(a)\n    a = a + 1\n    if a < 10 {\n        continue\n    }\n    break\n}",
+                "try": true
             }
         ]
     },
@@ -93,7 +93,7 @@
             {
                 "type": "code",
                 "text": "a = 0\nwhile a < 10 {\n    print(a)\n    a = a + 1\n}",
-                "try": false
+                "try": true
             }
         ]
     }
