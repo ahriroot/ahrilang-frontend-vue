@@ -8,7 +8,7 @@
             },
             {
                 "type": "code",
-                "text": "print(0)\nprint(1)",
+                "text": "print(0)\nprint(1)\n\nuse a.dis.parse\nuse a.dis.display\n\ncode = `\na = 1\nprint(a)\n`\n\ninst = parse(code)\ninst = display(inst)\nprint(inst)",
                 "try": true
             }
         ]

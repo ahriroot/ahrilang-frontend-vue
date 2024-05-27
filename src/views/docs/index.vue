@@ -31,14 +31,14 @@ const handleRunExample = (code: string) => {
 const showEditor = ref<boolean>(false)
 const outputRef = shallowRef<HTMLElement | null>(null)
 const output = ref<string[]>([])
-const handleRun = () => {
+const handleRun = async () => {
     let code = editorRef.value?.getCode()
     const builtins = {
         print: (arg: string) => {
             output.value.push(arg)
         }
     }
-    VirtualMachine.interpret(code, [], builtins)
+    await VirtualMachine.eval(code, [], builtins)
     nextTick(() => {
         if (outputRef.value) {
             outputRef.value.scrollTop = outputRef.value.scrollHeight
