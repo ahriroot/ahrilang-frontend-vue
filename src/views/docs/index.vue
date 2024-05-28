@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import CodeEditor from '@/components/CodeEditor.vue'
 import { nextTick, onMounted, ref, shallowRef } from 'vue'
+import { useRouter } from 'vue-router'
 import Prism from "prismjs"
 import "prismjs/plugins/line-numbers/prism-line-numbers.min.js"
 import "prismjs/themes/prism-tomorrow.min.css"
 import "prismjs/plugins/line-numbers/prism-line-numbers.min.css"
 
 import { VirtualMachine } from 'ahrilang-js'
+
+const router = useRouter()
 
 
 const codes = ref<{ [x: string]: any }>({})
@@ -49,11 +52,16 @@ const handleRun = async () => {
 const handleClear = () => {
     output.value = []
 }
+
+const handleHome = () => {
+    router.push({ name: 'index' })
+}
 </script>
 
 <template>
     <div class="docs">
         <div class="catalog">
+            <button class="btn" @click="handleHome">Home</button>
             <a class="item" v-for="(i, index) in codes" :key="index" :href="`#${i.title}`">{{ i.title }}</a>
         </div>
         <div :class="{ content: true, hide: showEditor }">
@@ -129,6 +137,27 @@ const handleClear = () => {
 .catalog::-webkit-scrollbar-thumb {
     background-color: #595959;
     border-radius: 3px;
+}
+
+.catalog .btn {
+    border-radius: 10px;
+    padding: 10px 20px;
+    border: none;
+    background-color: #1afa29;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: .3s;
+    color: #555;
+    font-weight: 600;
+}
+
+.catalog .btn:hover {
+    background-color: #1eaf28;
+}
+
+.catalog .btn:active {
+    background-color: #1afa29;
 }
 
 .catalog .item {

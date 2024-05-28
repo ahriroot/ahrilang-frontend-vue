@@ -1,9 +1,12 @@
 <script setup lang='ts'>
 import CodeEditor from '@/components/CodeEditor.vue'
 import { onBeforeMount, onBeforeUnmount, onMounted, ref, shallowRef } from 'vue'
+import { useRouter } from 'vue-router'
 import { VirtualMachine, Lexer, Parser, Compiler } from 'ahrilang-js'
 
 import JsonView from '@/components/JsonView.vue'
+
+const router = useRouter()
 
 const ide = shallowRef<any>()
 const output = ref<any[]>([])
@@ -145,6 +148,10 @@ const handleInst = () => {
 const handleChanged = (code: string) => {
     setStorage(code)
 }
+
+const handleHome = () => {
+    router.push({ name: 'index' })
+}
 </script>
 
 <template>
@@ -162,7 +169,8 @@ const handleChanged = (code: string) => {
                 <button class="btn" @click="handleClear">Clear</button>
                 <button class="btn" @click="handleToken">Token</button>
                 <button class="btn" @click="handleAst">Ast</button>
-                <button class="btn" @click="handleInst">Inst</button>
+                <button class="btn" @click="handleInst">Inst</button>&nbsp;&nbsp;&nbsp;&nbsp;
+                <button class="btn" @click="handleHome">Home</button>
             </div>
             <div class="console">
                 <div v-for="(item, index) in output" :key="index" :class="item.type == 'text' ? 'text' : 'error'">{{
@@ -235,8 +243,24 @@ const handleChanged = (code: string) => {
 }
 
 .opera .btn {
+    border-radius: 10px;
+    padding: 10px 20px;
+    border: none;
+    background-color: #1afa29;
+    color: #fff;
+    font-size: 16px;
     cursor: pointer;
-    padding: 5px 10px;
+    transition: .3s;
+    color: #555;
+    font-weight: 600;
+}
+
+.opera .btn:hover {
+    background-color: #1eaf28;
+}
+
+.opera .btn:active {
+    background-color: #1afa29;
 }
 
 .console {
