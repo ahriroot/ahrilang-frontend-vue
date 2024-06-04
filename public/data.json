@@ -24,6 +24,11 @@
                 "type": "code",
                 "text": "a = 1\nprint(a)\nb = \"hello\"\nprint(b)\nc = true\nprint(c)",
                 "try": true
+            },
+            {
+                "type": "code",
+                "text": "a = 3\nl = [1, 2, a]\nm = {\"a\": a, \"b\": 2, \"c\": l, l: \"list\"}\nprint(a)\nprint(l)\nprint(m)",
+                "try": true
             }
         ]
     },
